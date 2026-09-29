@@ -1,5 +1,6 @@
 global:
-  iamHostname: "iam.trial.openg2p.org"
+  envDomain: '{{ .Release.Namespace }}.openg2p.org'
+  iamHostname: 'iam.{{ tpl .Values.global.envDomain $ }}'
 
   # Database
   postgresqlHost: commons-postgresql
@@ -19,16 +20,16 @@ global:
   cacheExpireSeconds: 10
 
   # Security & Authentication
-  keycloakBaseUrl: 'https://keycloak.{{ .Release.Namespace }}.openg2p.org'
+  keycloakBaseUrl: 'https://keycloak.{{ tpl .Values.global.envDomain $ }}'
   keycloakRealm: staff
   keycloakIssuerUrl: '{{ tpl .Values.global.keycloakBaseUrl $ }}/realms/{{ .Values.global.keycloakRealm }}'
   keycloakExternalIssuerUrl: '{{ tpl .Values.global.keycloakBaseUrl $ }}/realms/{{ .Values.global.keycloakRealm }}'
 
   # Cookie domain (dot-prefixed so cookies work across subdomains)
-  authCookieDomain: '.{{ .Release.Namespace }}.openg2p.org'
+  authCookieDomain: '.{{ tpl .Values.global.envDomain $ }}'
 
   # Staff Portal redirect URL
-  staffPortalDefaultRedirectUri: 'https://staff-portal.trial.openg2p.org'
+  staffPortalDefaultRedirectUri: 'https://staff-portal.{{ tpl .Values.global.envDomain $ }}'
 
   # ── Agents ────────────────────────────────────────────────────────────────
   # Agents are NOT staff. They authenticate in their own realm against their own
@@ -44,15 +45,15 @@ global:
   # portal UI's real host: a stale value here sends the agent to a hostname
   # that does not exist and blocks the UI's own requests.
   # Public hostname of the agent portal UI. Set per deployment.
-  agentPortalHostname: 'agent-portal.trial.openg2p.org'
+  agentPortalHostname: 'agent-portal.{{ tpl .Values.global.envDomain $ }}'
   agentPortalDefaultRedirectUri: 'https://{{ tpl .Values.global.agentPortalHostname $ }}'
 
-  # Application URLs (populated by parent chart per environment)
-  keycloakApplicationUrl: 'https://keycloak.{{ .Release.Namespace }}.openg2p.org'
-  registryApplicationUrl: 'https://registry.{{ .Release.Namespace }}.openg2p.org'
-  minioApplicationUrl: 'https://minio.{{ .Release.Namespace }}.openg2p.org'
-  supersetApplicationUrl: 'https://superset.{{ .Release.Namespace }}.openg2p.org'
-  iamStaffUiApplicationUrl: 'https://{{ tpl .Values.iamStaffUi.hostname $ }}'
+  # Application URLs (populated by parent chart per environment)  
+  keycloakApplicationUrl: 'https://keycloak.{{ tpl .Values.global.envDomain $ }}'
+  registryApplicationUrl: 'https://registry.{{ tpl .Values.global.envDomain $ }}'
+  minioApplicationUrl: 'https://minio.{{ tpl .Values.global.envDomain $ }}'
+  supersetApplicationUrl: 'https://superset.{{ tpl .Values.global.envDomain $ }}'
+  iamStaffUiApplicationUrl: 'https://iam-staff-ui.{{ tpl .Values.global.envDomain $ }}'
 
   # Backend API URLs used by iam-staff-ui BFF (override per environment)
   masterDataApiUrl: 'http://commons-services-master-data-api'
@@ -159,7 +160,7 @@ iamStaffPortalApi:
     IAM_STAFF_DB_USERNAME: '{{ tpl .Values.global.iamDBUser $ }}'
     IAM_STAFF_OPENAPI_ROOT_PATH: '{{ .Values.openapiRootPath }}'
     # tpl, not a bare substitution: global.keycloakBaseUrl is itself a template
-    # ('https://keycloak.{{ tpl .Values.global.baseDomain $ }}'), so a single pass
+    # ('https://keycloak.{{ tpl .Values.global.envDomain $ }}'), so a single pass
     # resolves this reference and leaves the inner '{{ tpl ... }}' in the value
     # verbatim -- which is what reached the running pods. ADMIN_URL reads the SAME
     # setting and renders correctly precisely because it uses tpl.
@@ -363,7 +364,7 @@ iamAgentPortalApi:
     IAM_AGENT_DB_USERNAME: '{{ tpl .Values.global.iamDBUser $ }}'
     IAM_AGENT_OPENAPI_ROOT_PATH: '{{ .Values.openapiRootPath }}'
     # tpl, not a bare substitution: global.keycloakBaseUrl is itself a template
-    # ('https://keycloak.{{ tpl .Values.global.baseDomain $ }}'), so a single pass
+    # ('https://keycloak.{{ tpl .Values.global.envDomain $ }}'), so a single pass
     # resolves this reference and leaves the inner '{{ tpl ... }}' in the value
     # verbatim -- which is what reached the running pods. ADMIN_URL reads the SAME
     # setting and renders correctly precisely because it uses tpl.
@@ -478,7 +479,7 @@ iamAgentPortalApi:
 iamStaffUi:
   enabled: true
   nameOverride: iam-staff-ui
-  hostname: 'iam-staff-ui.{{ .Release.Namespace }}.openg2p.org'
+  hostname: 'iam-staff-ui.{{ tpl .Values.global.envDomain $ }}'
   replicaCount: 1
 
   image:
